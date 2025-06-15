@@ -1,8 +1,20 @@
-import citySelector from '../components/citySelector'
+import CityPicker from '@/components/CityPicker';
+import { createSupabaseServer } from '@/lib/supabaseClient';
 /* src/components/HomeHero.jsx */
 import React from "react";
 
-export default function HomeHero() {
+export const revalidate = 3600;   // optional: cache for 1 hour
+
+export default async function Home() {
+  const supabase = createSupabaseServer();
+
+  const { data: cities, error } = await supabase
+    .from('cities')
+    .select('id, name')
+    .order('name');          // already London, Edinburgh, Bristol
+
+  if (error) throw error;    // bubble to Next.js error page
+  
   return (
     /* pad top & bottom so content never hides under fixed header/footer */
     <section className="mx-auto max-w-xs pt-[120px] pb-20 text-center">
@@ -18,7 +30,7 @@ export default function HomeHero() {
       </p>
 
       {/* ——— placeholder for city-picker button —— */}
-      {/* <CityPicker /> */}
+      <CityPicker cities={cities ?? []} />
 
       {/* Lower info area */}
       <div className="mt-10">
