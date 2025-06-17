@@ -44,15 +44,18 @@ export default function EventAccordion({ citySlug, events }) {
 
   /* label helper */
   const nice = (iso) => {
-    const d  = new Date(iso);               // event date (00:00)
-    const t0 = new Date();                  // now
-    // reset “today” to midnight so we compare whole-days only
+    const d  = new Date(iso);
+    const t0 = new Date();
     t0.setHours(0, 0, 0, 0);
   
-    const diff = Math.round((d - t0) / 86400e3);  // exact day difference
+    const diff = Math.round((d - t0) / 86400e3);
     if (diff === 0) return 'Today';
     if (diff === 1) return 'Tomorrow';
-    return d.toLocaleDateString(undefined, { day: 'numeric', month: 'short' });
+    // ↳ force UK style "17 Jun" on both server and client
+    return d.toLocaleDateString("en-GB", {
+      day:   "2-digit",
+      month: "short",
+    });
   };
 
   return (

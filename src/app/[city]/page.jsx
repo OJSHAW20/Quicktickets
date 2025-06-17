@@ -8,7 +8,7 @@ export const dynamic = 'force-dynamic';           // no ISR cache
 export default async function CityPage({ params: { city } }) {
   /* ── 1. prep display ─────────────────────────────── */
   const lower = city.toLowerCase();
-  const flagMap = { edinburgh: '🏴', london: '🇬🇧', bristol: '🏴‍☠️' };
+  const flagMap = { edinburgh: '🏴󠁧󠁢󠁳󠁣󠁴󠁿', london: '🇬🇧', bristol: '🇬🇧' };
   const displayName = lower[0].toUpperCase() + lower.slice(1);
   const flag = flagMap[lower] || '';
 
@@ -47,9 +47,11 @@ export default async function CityPage({ params: { city } }) {
   return (
     <section className="px-4 pt-[84px] pb-6 space-y-6">
       {/* top bar */}
-      <div className="flex justify-between items-center">
-        <CityTag city={displayName} flag={flag} />
-        <SellTicketButton href={`/${lower}/sell`} />
+      <div className="flex flex-col sm:flex-row sm:justify-between sm:items-center gap-4 mb-2">
+        <CityTag city={displayName} flag={flag} className="w-max mt-6" />
+        <SellTicketButton 
+          href={`/${lower}/sell`} className={"py-3.5"}
+        />
       </div>
 
       {/* current events */}
