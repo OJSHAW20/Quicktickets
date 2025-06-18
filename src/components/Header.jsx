@@ -1,5 +1,6 @@
 import React from "react";
 import Link from "next/link";
+import UserMenu from "@/components/UserMenu";
 
 const Header = () => {
   return (
@@ -8,9 +9,7 @@ const Header = () => {
         webname
       </Link>
       <nav className="flex space-x-4 text-sm">
-        <Link href="/signup" className="hover:underline">Sign up</Link>
-        <Link href="/login" className="hover:underline">Log in</Link>
-        <Link href="/faqs" className="hover:underline">FAQs</Link>
+        <UserMenu />
         <Link href="/listings" className="hover:underline">My listings</Link>
       </nav>
     </header>

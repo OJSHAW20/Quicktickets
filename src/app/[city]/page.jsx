@@ -5,7 +5,8 @@ import { createSupabaseServer } from '@/lib/supabaseClient';
 
 export const dynamic = 'force-dynamic';           // no ISR cache
 
-export default async function CityPage({ params: { city } }) {
+export default async function CityPage({ params }) {
+  const { city } = await params;
   /* ── 1. prep display ─────────────────────────────── */
   const lower = city.toLowerCase();
   const flagMap = { edinburgh: '🏴󠁧󠁢󠁳󠁣󠁴󠁿', london: '🇬🇧', bristol: '🇬🇧' };
@@ -50,7 +51,7 @@ export default async function CityPage({ params: { city } }) {
       <div className="flex flex-col sm:flex-row sm:justify-between sm:items-center gap-4 mb-2">
         <CityTag city={displayName} flag={flag} className="w-max mt-6" />
         <SellTicketButton 
-          href={`/${lower}/sell`} className={"py-3.5"}
+          href={`/${lower}/sell`} className={"py-3.5 ml-auto mr-5"}
         />
       </div>
 

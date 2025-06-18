@@ -10,7 +10,8 @@ import TicketList from '@/components/TicketList';  // built
 
 export const dynamic = 'force-dynamic'; // no caching
 
-export default async function EventPage({ params: { city, eventId } }) {
+export default async function EventPage({ params }) {
+  const { city, eventId } = await params;
   const lower = city.toLowerCase();
   const supabase = createSupabaseServer();
 

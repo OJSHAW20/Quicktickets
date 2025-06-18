@@ -5,6 +5,7 @@ import { useRouter } from 'next/navigation';
 import TicketForm from '@/components/TicketForm';
 import NewEventForm from '@/components/NewEventForm';
 import CityTag from '@/components/CityTag';
+import { useSession } from '@supabase/auth-helpers-react';
 
 export default function SellTicketClient({
   citySlug,
@@ -16,6 +17,16 @@ export default function SellTicketClient({
   const [selected, setSelected] = useState('');
   const [query, setQuery]    = useState('');
   const [open, setOpen]     = useState(false);
+
+  const session = useSession();
+
+  if (!session) {
+    return (
+      <p className="p-6 text-center">
+        You must <a href="/signin" className="underline">log in</a> to list a ticket.
+      </p>
+    );
+  }
 
   const handleTicketCreated = (eventId) =>
     router.push(`/${citySlug}/${eventId}`);

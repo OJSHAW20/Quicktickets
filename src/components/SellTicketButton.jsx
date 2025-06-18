@@ -1,25 +1,41 @@
-// src/components/SellTicketButton.jsx
+'use client';
 
-import React from "react";
-import Link from "next/link";
+import { useSession } from '@supabase/auth-helpers-react';
+import { useRouter } from 'next/navigation';
+import React from 'react';
 
 export default function SellTicketButton({ href = "/sell", className = "" }) {
+  const session = useSession();
+  const router = useRouter();
+
+  function handleClick(e) {
+    e.preventDefault(); // prevent default <a> navigation
+
+    if (!session) {
+      alert("Please log in first (student e-mail required).");
+      router.push('/signin');
+      return;
+    }
+
+    router.push(href);
+  }
+
   return (
-    <Link href={href}>
-      <div
-        className={
-          `inline-flex items-center space-x-2 
-+          rounded-lg border border-black 
-+          bg-green-500 px-6 py-2 
-+          text-lg font-semibold text-white 
-+          shadow-md hover:bg-green-600 transition` +
-          ` ${className}`
-        }
-      >
-        <span className="text-xl">🎟️</span>
-        <span>Click to sell ticket</span>
-      </div>
-    </Link>
+    <a
+      href={href}
+      onClick={handleClick}
+      className={
+        `inline-flex items-center space-x-2 
+         rounded-lg border border-black 
+         bg-green-500 px-6 py-2 
+         text-lg font-semibold text-white 
+         shadow-md hover:bg-green-600 transition` +
+        ` ${className}`
+      }
+    >
+      <span className="text-xl">🎟️</span>
+      <span>Click to sell ticket</span>
+    </a>
   );
 }
 

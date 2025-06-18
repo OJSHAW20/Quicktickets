@@ -2,6 +2,7 @@ import "../styles/globals.css";
 import { Geist, Geist_Mono } from "next/font/google";
 import Header from '../components/Header'
 import Footer from '../components/Footer';
+import AuthProvider from '@/components/AuthProvider';
 
 
 const geistSans = Geist({
@@ -24,9 +25,11 @@ export default function RootLayout({ children }) {
     <html lang="en" className="h-dvh"><body
       className="h-full grid grid-rows-[auto_1fr_auto] antialiased"
     >
-      <Header />
-      <main className="overflow-y-auto">{children}</main>
-      <Footer />
+      <AuthProvider>
+        <Header />
+        <main className="overflow-y-auto">{children}</main>
+        <Footer />
+      </AuthProvider>
     </body></html>
   );
 }

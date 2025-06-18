@@ -3,7 +3,8 @@ import SellTicketClient from './SellTicketClient';
 
 export const dynamic = 'force-dynamic';
 
-export default async function SellPage({ params: { city } }) {
+export default async function SellPage({ params }) {
+  const { city } = await params;
   const lower = city.toLowerCase();
   const supabase = createSupabaseServer();
 
