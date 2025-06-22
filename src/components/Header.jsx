@@ -10,7 +10,7 @@ const Header = () => {
       </Link>
       <nav className="flex space-x-4 text-sm">
         <UserMenu />
-        <Link href="/listings" className="hover:underline">My listings</Link>
+        <Link href="/my-listings" className="hover:underline">My listings</Link>
       </nav>
     </header>
   );
