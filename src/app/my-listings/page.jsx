@@ -14,6 +14,8 @@ import DisputesBuySidePanel from "@/components/DisputesBuySidePanel";
 import DisputesSellSidePanel from "@/components/DisputesSellSidePanel";
 import TicketsSellingPanel from "@/components/TicketsSellingPanel";
 import { createServerComponentClient } from "@supabase/auth-helpers-nextjs";
+import MyDetailsPanel from "@/components/ui/MyDetailsPanel";
+
 
 export default async function MyListingsAccordion() {
   // build a Supabase client bound to this request’s cookies
@@ -30,54 +32,22 @@ export default async function MyListingsAccordion() {
   }
 
   return (
-    <main className="mx-auto max-w-lg p-4 space-y-4">
-      <Accordion type="multiple" className="w-full">
+    <main className="mx-auto max-w-lg p-4 space-y-4 pt-20">
+      <Accordion type="multiple" className="w-full" >
         {/* ────────────────────────────  My details  */}
         <AccordionItem value="details">
           <AccordionTrigger className="text-lg font-semibold">
             🎓 My details
           </AccordionTrigger>
           <AccordionContent>
-            <Card className="bg-muted/50">
-              <CardHeader>
-                <CardTitle>Your profile</CardTitle>
-              </CardHeader>
-              <CardContent className="grid gap-3">
-                {/* stub fields for now */}
-                <div className="grid grid-cols-3 items-center gap-2">
-                  <span className="font-medium">Full name</span>
-                  <input
-                    readOnly
-                    defaultValue="John Doe"
-                    className="col-span-2 px-2 py-1 rounded-md border"
-                  />
-                </div>
-                <div className="grid grid-cols-3 items-center gap-2">
-                  <span className="font-medium">Username</span>
-                  <input
-                    readOnly
-                    defaultValue="jdoe"
-                    className="col-span-2 px-2 py-1 rounded-md border"
-                  />
-                </div>
-                <div className="grid grid-cols-3 items-center gap-2">
-                  <span className="font-medium">University</span>
-                  <input
-                    readOnly
-                    defaultValue="UoE"
-                    className="col-span-2 px-2 py-1 rounded-md border"
-                  />
-                </div>
-                <div className="grid grid-cols-3 items-center gap-2">
-                  <span className="font-medium">Uni email</span>
-                  <input
-                    readOnly
-                    defaultValue="john@university.ac.uk"
-                    className="col-span-2 px-2 py-1 rounded-md border"
-                  />
-                </div>
-              </CardContent>
-            </Card>
+          <Card className="bg-muted/50">
+               <CardHeader>
+                 <CardTitle>Your profile</CardTitle>
+               </CardHeader>
+               <CardContent>
+                 <MyDetailsPanel />
+               </CardContent>
+             </Card>
           </AccordionContent>
         </AccordionItem>
 

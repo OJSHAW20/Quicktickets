@@ -32,14 +32,24 @@ export default function TicketsBoughtPanel() {
         .from('orders')
         .select(
           'id,status,' +
-          'tickets(id,price,last_entry_time,status,' +
-                   'events(title,venue)),' +
+          'tickets(' +
+            'id,' +
+            'price,' +
+            'last_entry_time,' +
+            'status,' +
+            'proof_url,' +
+            'seller_id,' +
+            'events(' +
+              'title,venue,event_date' +
+            ')' +
+          '),' +
           'disputes(id,status)'
         )
+        
         .eq('buyer_id', user.id);
 
       if (error) {
-        console.error(error);
+        console.error("Supabase fetch error:", JSON.stringify(error, null, 2));
         setOrders([]);
       } else {
         setOrders(data || []);
@@ -66,6 +76,10 @@ export default function TicketsBoughtPanel() {
           key={o.id}
           ticket={{
             ...o.tickets,
+            seller_id: o.tickets.seller_id,
+            proof_url      : o.tickets.proof_url,                // image URL
+            event_date     : o.tickets.events.event_date,         // event timestamp
+            
             order_id   : o.id,
             event_title: o.tickets.events.title,
             venue      : o.tickets.events.venue,
