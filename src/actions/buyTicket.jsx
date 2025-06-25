@@ -1,47 +1,79 @@
+// src/actions/buyTicket.jsx
 'use server';
 
 import { createSupabaseServer } from '@/lib/supabaseClient';
 import Stripe from 'stripe';
 
+const stripe = new Stripe(process.env.STRIPE_SECRET_KEY, {
+  apiVersion: '2022-11-15',
+});
+
 export async function buyTicket(ticketId, eventId) {
   const supabase = createSupabaseServer();
-  const stripe   = new Stripe(process.env.STRIPE_SECRET_KEY);
 
-  /* 1. ensure ticket is still available */
-  const { data: ticket, error } = await supabase
+  // 1) Load the ticket and its flag + seller
+  const { data: ticket, error: ticketErr } = await supabase
     .from('tickets')
-    .select('id, price')
+    .select('price, buyer_uni_only, seller_id')
     .eq('id', ticketId)
-    .eq('status', 'available')
     .single();
+  if (ticketErr || !ticket) throw new Error('Ticket not found');
 
-  if (error || !ticket) throw new Error('Ticket no longer available');
+  // 2) If uni‐only, fetch both universities
+  if (ticket.buyer_uni_only) {
+    // buyer
+    const {
+      data: { user },
+      error: authErr
+    } = await supabase.auth.getUser();
+    if (authErr || !user) throw new Error('Must be signed in to buy');
 
-  /* 2. create PaymentIntent */
-  const intent = await stripe.paymentIntents.create({
-    amount: Math.round(ticket.price * 100),
-    currency: 'gbp',
-    metadata: { ticket_id: ticketId, event_id: eventId },
-  });
+    const { data: buyerProfile, error: buyerErr } = await supabase
+      .from('profiles')
+      .select('university')
+      .eq('id', user.id)
+      .single();
+    if (buyerErr || !buyerProfile) throw new Error('Profile not found');
 
-  /* 3. create order row */
-  await supabase.from('orders').insert({
-    ticket_id: ticketId,
-    buyer_id: null,
-    stripe_payment_intent: intent.id,
-    status: 'pending',
-  });
+    // seller
+    const { data: sellerProfile, error: sellerErr } = await supabase
+      .from('profiles')
+      .select('university')
+      .eq('id', ticket.seller_id)
+      .single();
+    if (sellerErr || !sellerProfile) throw new Error('Seller profile not found');
 
-  /* 4. mark ticket as sold */
-  await supabase.from('tickets').update({ status: 'sold' }).eq('id', ticketId);
+    if (buyerProfile.university !== sellerProfile.university) {
+      throw new Error('Only buyers from the same university may purchase this ticket');
+    }
+  }
 
-  /* 5. create checkout session and return its URL */
+  // 3) Create Stripe Checkout Session (or PaymentIntent) as you do today
   const session = await stripe.checkout.sessions.create({
+    payment_method_types: ['card'],
+    line_items: [{
+      price_data: {
+        product_data: { name: `Ticket for event ${eventId}` },
+        unit_amount: Math.round(ticket.price * 100),
+        currency: 'gbp'
+      },
+      quantity: 1
+    }],
     mode: 'payment',
-    payment_intent: intent.id,
-    success_url: `${process.env.NEXT_PUBLIC_SITE_URL}/success`,
-    cancel_url:  `${process.env.NEXT_PUBLIC_SITE_URL}/cancel`,
+    success_url: `${process.env.NEXT_PUBLIC_APP_URL}/success?session_id={CHECKOUT_SESSION_ID}`,
+    cancel_url:  `${process.env.NEXT_PUBLIC_APP_URL}/event/${eventId}`
   });
+
+  // 4) Record the pending order
+  const { error: orderErr } = await supabase
+    .from('orders')
+    .insert({
+      ticket_id:             ticketId,
+      buyer_id:              session.customer,      // or user.id if you store it
+      stripe_payment_intent: session.payment_intent,
+      status:                'pending'
+    });
+  if (orderErr) throw new Error(orderErr.message);
 
   return session.url;
 }

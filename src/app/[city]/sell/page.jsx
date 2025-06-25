@@ -1,11 +1,29 @@
 import { createSupabaseServer } from '@/lib/supabaseClient';
 import SellTicketClient from './SellTicketClient';
+import { cookies } from 'next/headers';
+import { createServerComponentClient } from '@supabase/auth-helpers-nextjs';
 
 export const dynamic = 'force-dynamic';
 
 export default async function SellPage({ params }) {
   const { city } = await params;
   const lower = city.toLowerCase();
+
+    // —– fetch the signed-in user’s session —–
+  const authSupabase = createServerComponentClient({ cookies });
+  const {
+    data: { session },
+  } = await authSupabase.auth.getSession();
+
+  if (!session) {
+    return <p className="p-6 text-center">You must be signed in to sell tickets.</p>;
+  }
+  const sellerId = session.user.id;
+
+
+
+
+
   const supabase = createSupabaseServer();
 
   // city lookup
@@ -33,6 +51,7 @@ export default async function SellPage({ params }) {
       cityId={cityRow.id}
       cityName={cityRow.name}
       events={events || []}
+      sellerId={sellerId}
     />
   );
 }

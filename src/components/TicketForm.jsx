@@ -4,12 +4,16 @@ import { useState } from 'react';
 import { createTicket } from '@/actions/createTicket';  // your server-action
 import { useRouter } from 'next/navigation';
 
-export default function TicketForm({ eventId, onTicketCreated }) {
+export default function TicketForm({
+  eventId,
+  sellerId,            // comes from SellTicketClient
+  onTicketCreated
+}) {
   const router = useRouter();
-  const [price,    setPrice]    = useState('');
-  const [lastEntry,setLastEntry]= useState('');
+  const [price, setPrice] = useState('');
+  const [lastEntry, setLastEntry] = useState('');
   const [buyerScope, setBuyerScope] = useState('any');
-  const [file,     setFile]     = useState(null);
+  const [file, setFile] = useState(null);
   const [submitting, setSubmitting] = useState(false);
 
   async function handleSubmit(e) {
@@ -20,16 +24,17 @@ export default function TicketForm({ eventId, onTicketCreated }) {
     setSubmitting(true);
 
     try {
-      // this server action should:
-      // 1) take the file, upload it to storage
-      // 2) insert a row into `tickets` with the returned public URL
+      const buyer_uni_only = (buyerScope === 'myUni');
+
       await createTicket({
         eventId,
+        sellerId,                        // ← use the prop, no lookup
         price: parseFloat(price),
         last_entry_time: lastEntry,
-        buyer_uni_only: buyerOnly,
-        file  // pass the File object along to your action
+        buyer_uni_only,
+        file
       });
+
       onTicketCreated(eventId);
     } catch (err) {
       console.error(err);
@@ -84,19 +89,18 @@ export default function TicketForm({ eventId, onTicketCreated }) {
         )}
       </div>
 
-{/* Restrict buyers */}
-     <div>
-       <label className="block text-sm font-semibold">Buyer scope</label>
-      <select
-      value={buyerScope}
-      onChange={e => setBuyerScope(e.target.value)}
-      className="w-full rounded border px-3 py-2"
-    >
-      <option value="any">Anyone</option>
-      <option value="verified">Any uni-verified buyer</option>
-      <option value="myUni">Only buyers from my university</option>
-    </select>
-     </div>
+      {/* Restrict buyers */}
+      <div>
+        <label className="block text-sm font-semibold">Buyer scope</label>
+        <select
+          value={buyerScope}
+          onChange={e => setBuyerScope(e.target.value)}
+          className="w-full rounded border px-3 py-2"
+        >
+          <option value="any">Anyone</option>
+          <option value="myUni">Only buyers from my university</option>
+        </select>
+      </div>
 
       <button
         type="submit"

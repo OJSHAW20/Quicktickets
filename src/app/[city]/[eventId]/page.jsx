@@ -38,7 +38,7 @@ export default async function EventPage({ params }) {
   const { data: tickets } = await supabase
     .from('tickets')
     .select(`
-      id, price, proof_url,  buyer_uni_only, last_entry_time,
+      id, seller_id, price, proof_url,  buyer_uni_only, last_entry_time,
       profiles ( id, university, avatar_url )
     `)
     .eq('event_id', eventId)

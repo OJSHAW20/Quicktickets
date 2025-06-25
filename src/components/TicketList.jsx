@@ -11,6 +11,7 @@ import TicketCard from './TicketCard';
  *   eventId : UUID string (needed for the TicketCard's buy flow)
  */
 export default function TicketList({ tickets, eventId }) {
+  console.log('loaded tickets:', tickets);
   const [sort, setSort] = useState('price'); // 'price' | 'newest'
 
   /* memo-sorted list so we don’t resort on every render */

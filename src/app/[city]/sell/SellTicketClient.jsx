@@ -101,7 +101,7 @@ export default function SellTicketClient({
       )}
 
       {selected && selected !== 'new' && (
-        <TicketForm eventId={selected} onTicketCreated={handleTicketCreated} />
+        <TicketForm eventId={selected} sellerId={session.user.id} onTicketCreated={handleTicketCreated} />
       )}
     </section>
   );

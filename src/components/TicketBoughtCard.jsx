@@ -45,24 +45,29 @@ export default function TicketBoughtCard({ ticket, hasDispute }) {
  const allowDispute = Date.now() < eventTimeMs + 24 * 60 * 60 * 1000;
 
   useEffect(() => {
-    // fetch the seller’s uni_verified flag
+    // Only fetch if seller_id is a non-empty string and looks like a UUID
+    if (!ticket.seller_id || typeof ticket.seller_id !== 'string' || ticket.seller_id.length !== 36) {
+      setSellerVerified(false);
+      return;
+    }
+    // fetch the seller's uni_verified flag
     browserSupabase
       .from('profiles')
       .select('uni_verified')
       .eq('id', ticket.seller_id)
       .single()
       .then(({ data, error }) => {
-               if (error) {
-                   // only log when there's a real Supabase error
-                   console.error("Profile fetch error:", error);
-                   return;
-                 }
-                 if (data && typeof data.uni_verified === 'boolean') {
-                   setSellerVerified(data.uni_verified);
-                 } else {
-                   // no row found → treat as “not verified”
-                   setSellerVerified(false);
-                 }
+        if (error) {
+          // only log when there's a real Supabase error
+          console.error("Profile fetch error:", error);
+          return;
+        }
+        if (data && typeof data.uni_verified === 'boolean') {
+          setSellerVerified(data.uni_verified);
+        } else {
+          // no row found → treat as "not verified"
+          setSellerVerified(false);
+        }
       });
   }, [ticket.seller_id]);
 

@@ -6,7 +6,7 @@ import TicketSellingCard from "@/components/ui/TicketSellingCard";
 import { format } from "date-fns";
 
 export default async function TicketsSellingPanel() {
-  // 1. Build Supabase client bound to this request’s cookies
+  // 1. Build Supabase client bound to this request's cookies
   const supabase = createServerComponentClient({ cookies });
 
   // 2. Get current session
@@ -18,7 +18,7 @@ export default async function TicketsSellingPanel() {
     return <p className="text-sm text-red-500">You must be signed in.</p>;
   }
 
-  // 3. Fetch this user’s AVAILABLE tickets with event info
+  // 3. Fetch this user's AVAILABLE tickets with event info
   const sevenDaysAgo = new Date(Date.now() - 7 * 24 * 60 * 60 * 1000).toISOString();
   
     const [activeRes, soldRes] = await Promise.all([
@@ -47,6 +47,11 @@ export default async function TicketsSellingPanel() {
         .gte("created_at", sevenDaysAgo)
         .order("created_at", { ascending: false }),
     ]);
+  
+    // Debug logging
+    console.log('TicketsSellingPanel: session.user.id', session.user.id);
+    console.log('TicketsSellingPanel: activeRes', JSON.stringify(activeRes, null, 2));
+    console.log('TicketsSellingPanel: soldRes', JSON.stringify(soldRes, null, 2));
   
     if (activeRes.error || soldRes.error) {
       console.error("Error loading listings:", activeRes.error || soldRes.error);
