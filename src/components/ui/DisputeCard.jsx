@@ -1,121 +1,94 @@
-"use client";
+'use client';
 
-import { useState } from "react";
-import { useRouter } from "next/navigation";
-import { createSupabaseBrowser } from "@/lib/supabaseBrowser";
-import { Button } from "@/components/ui/button";
-// If you prefer next/image for optimization:
-// import Image from "next/image";
+import { useState } from 'react';
+import { useRouter } from 'next/navigation';
+import { createSupabaseBrowser } from '@/lib/supabaseBrowser';
+import { Button } from '@/components/ui/button';
+import { respondToDispute } from '@/actions/respondToDispute';
 
 export default function DisputeCard({ dispute }) {
-  const router     = useRouter();
-  const supabase   = createSupabaseBrowser();
-  const [loading, setLoading] = useState(false);
-  const [error, setError]     = useState("");
+  const router = useRouter();
+  const [submitting, setSubmitting] = useState(false);
 
-  // Format date (same as before)
-  const formattedDate = new Date(dispute.created_at).toLocaleString("en-GB", {
-    day:   "2-digit",
-    month: "2-digit",
-    year:  "numeric",
-    hour:   "2-digit",
-    minute: "2-digit",
-    second: "2-digit",
+  const formattedDate = new Date(dispute.created_at).toLocaleString('en-GB', {
+    day:   '2-digit',
+    month: '2-digit',
+    year:  'numeric',
+    hour:   '2-digit',
+    minute: '2-digit',
+    second: '2-digit',
     hour12: false,
   });
 
-  const handleAction = async (action) => {
-    if (action === "cancel" && !confirm("Refund the buyer?")) return;
-
-    setLoading(true);
-    setError("");
-
-    const { error } = await supabase.rpc("resolve_dispute", {
-      p_dispute_id: dispute.id,
-      p_order_id:   dispute.order.id,
-      p_action:     action,
-    });
-
-    setLoading(false);
-
-    if (error) {
-      console.error("Dispute resolution error:", error);
-      setError("Action failed. Try again.");
-    } else {
-      router.refresh();
-    }
-  };
-
-  const { ticket } = dispute.order;
-
   return (
-    <div className="border rounded-lg p-4 bg-white shadow-sm space-y-4">
-      {/* Event + Price */}
+    <form
+      action={async (formData) => {
+        setSubmitting(true);
+        await respondToDispute(formData);
+        router.refresh();
+      }}
+      className="border rounded-lg p-4 bg-white shadow-sm space-y-4"
+    >
       <h3 className="text-lg font-semibold">
-        {ticket.event.title} — £{ticket.price}
+        {dispute.order.ticket.event.title} — £{dispute.order.ticket.price}
       </h3>
-
-      {/* Raised on */}
       <p className="text-sm text-muted-foreground">
         Raised on {formattedDate}
       </p>
-
-      {/* Buyer’s message */}
       <div>
         <h4 className="font-medium">Buyer’s Message</h4>
         <p className="mb-2">{dispute.message}</p>
       </div>
-
-      {/* Proof image */}
-      {ticket.proof_url && (
+      {dispute.order.ticket.proof_url && (
         <div>
           <h4 className="font-medium">Proof Image</h4>
           <img
-            src={ticket.proof_url}
+            src={dispute.order.ticket.proof_url}
             alt="Ticket proof"
             className="mt-1 max-h-48 object-contain border"
           />
-          {/* Or with next/image:
-            <Image
-              src={ticket.proof_url}
-              alt="Ticket proof"
-              width={300}
-              height={200}
-              className="object-contain border"
-            />
-          */}
         </div>
       )}
 
-      {/* Seller’s response */}
-      {dispute.seller_response && (
-        <div>
-          <h4 className="font-medium">Seller’s Response</h4>
-          <p className="mb-2">{dispute.seller_response}</p>
-        </div>
-      )}
+      {/* ← New textarea for the admin’s response */}
+      <div>
+        <label htmlFor={`response-${dispute.id}`} className="font-medium">
+          Your Response
+        </label>
+        <textarea
+          id={`response-${dispute.id}`}
+          name="response"
+          required
+          className="w-full mt-1 border rounded p-2"
+          placeholder="Explain your decision..."
+        />
+      </div>
 
-      {/* Error */}
-      {error && <p className="text-sm text-red-500">{error}</p>}
+      {/* Hidden fields for disputeId and orderId */}
+      <input type="hidden" name="disputeId" value={dispute.id} />
+      <input type="hidden" name="orderId" value={dispute.order.id} />
 
-      {/* Actions */}
+      {/* Action buttons */}
       <div className="flex space-x-2">
         <Button
-          size="sm"
-          onClick={() => handleAction("capture")}
-          disabled={loading}
+          type="submit"
+          name="action"
+          value="capture"
+          variant="default"
+          disabled={submitting}
         >
-          {loading ? "Working..." : "Release Funds"}
+          {submitting ? 'Processing…' : 'Release Funds'}
         </Button>
         <Button
-          size="sm"
+          type="submit"
+          name="action"
+          value="cancel"
           variant="destructive"
-          onClick={() => handleAction("cancel")}
-          disabled={loading}
+          disabled={submitting}
         >
-          {loading ? "Working..." : "Refund Buyer"}
+          {submitting ? 'Processing…' : 'Refund Buyer'}
         </Button>
       </div>
-    </div>
+    </form>
   );
 }

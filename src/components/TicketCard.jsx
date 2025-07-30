@@ -2,46 +2,51 @@
 'use client';
 
 import { useState, useEffect } from 'react';
-import { buyTicket } from '@/actions/buyTicket';
+import { createCheckoutSession } from '@/actions/createCheckoutSession';
 import { supabaseBrowser } from '@/lib/supabaseClient';
-import { useSession } from '@supabase/auth-helpers-react';    // ← add this
+import { useSession } from '@supabase/auth-helpers-react';
 
 export default function TicketCard({ ticket, eventId }) {
   const [allowedToBuy, setAllowedToBuy] = useState(true);
-  const session = useSession();          // ← new
-  const buyerId = session?.user?.id;     // ← new
-  const sellerId = ticket.seller_id;      // who listed this ticket
+  const session  = useSession();
+  const buyerId  = session?.user?.id;
+  const sellerId = ticket.seller_id;
 
   useEffect(() => {
-         // 1) no restriction → allow
-     if (!ticket.buyer_uni_only) {
-       setAllowedToBuy(true);
-       return;
-     }
- 
-     // 2) seller viewing their own ticket → allow
-     if (buyerId && buyerId === sellerId) {
-       setAllowedToBuy(true);
-       return;
-     }
-
-   // 3) Different user & uni-only: fetch buyer’s uni & compare to seller’s
-  async function checkUni() {
-    const { data: buyerProfile, error } = await supabaseBrowser
-      .from('profiles')
-      .select('university')
-      .eq('id', buyerId)
-      .single();
-    if (error || !buyerProfile) {
-      setAllowedToBuy(false);
+    // 1) no restriction → allow
+    if (!ticket.buyer_uni_only) {
+      setAllowedToBuy(true);
       return;
     }
 
-    const sellerUni = ticket.profiles?.university;
-    setAllowedToBuy(buyerProfile.university === sellerUni);
-  }
-  checkUni();
-  }, [ticket.buyer_uni_only, ticket.profiles?.university]);
+    // 2) seller viewing their own ticket → allow
+    if (buyerId && buyerId === sellerId) {
+      setAllowedToBuy(true);
+      return;
+    }
+
+    // 3) uni-only: fetch buyer’s uni & compare to seller’s
+    async function checkUni() {
+      const { data: buyerProfile, error } = await supabaseBrowser
+        .from('profiles')
+        .select('university')
+        .eq('id', buyerId)
+        .single();
+      if (error || !buyerProfile) {
+        setAllowedToBuy(false);
+        return;
+      }
+
+      const sellerUni = ticket.profiles?.university;
+      setAllowedToBuy(buyerProfile.university === sellerUni);
+    }
+    checkUni();
+  }, [
+    ticket.buyer_uni_only,
+    ticket.profiles?.university,
+    buyerId,
+    sellerId,
+  ]);
 
   return (
     <div className="flex rounded border overflow-hidden">
@@ -74,8 +79,12 @@ export default function TicketCard({ ticket, eventId }) {
         onClick={async () => {
           if (!allowedToBuy) return;
           try {
-            const url = await buyTicket(ticket.id, eventId);
-            if (url) window.location.href = url;
+            const url = await createCheckoutSession({
+              ticketId: ticket.id,
+              eventId,
+              buyerId
+            });
+            window.location.href = url;
           } catch (err) {
             alert(err.message);
           }
