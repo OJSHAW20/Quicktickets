@@ -56,7 +56,7 @@ export default async function CityPage({ params }) {
       </div>
 
       {/* current events */}
-      <h2 className="mx-auto w-max rounded border-2 border-black px-6 py-1 text-2xl font-bold">
+      <h2 className="mx-auto w-max rounded border-2 border-black px-6 py-1 text-2xl font-bold bg-sky-200	">
         Current Events
       </h2>
 

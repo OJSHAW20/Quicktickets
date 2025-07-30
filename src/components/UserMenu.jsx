@@ -30,14 +30,14 @@ export default function UserMenu() {
   }
 
   return (
-    <div className="flex items-center gap-3">
-      <span className="font-semibold whitespace-nowrap max-w-[12ch] truncate">
+    <div className="flex items-center gap-2 min-w-0">
+      <span className="font-semibold text-xs max-w-[10ch] truncate">
         {displayName}
       </span>
 
       <button
         onClick={handleLogout}
-        className="text-xs underline hover:text-red-600"
+        className="text-xs underline hover:text-red-600 whitespace-nowrap"
       >
         Log out
       </button>

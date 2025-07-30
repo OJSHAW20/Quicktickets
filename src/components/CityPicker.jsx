@@ -17,7 +17,7 @@ export default function CityPicker({ cities }) {
   return (
     <div className="w-full max-w-xs">
       {/* sub-heading */}
-      <p className="mx-auto mb-3 block rounded-full bg-blue-200 px-6 py-1.5 text-sm font-medium">
+      <p className="mx-auto mb-3 block rounded-full bg-blue-200 px-6 py-3 text-sm font-medium">
         Pick your city
       </p>
 
