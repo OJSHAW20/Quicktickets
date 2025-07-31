@@ -46,26 +46,27 @@ export default async function CityPage({ params }) {
   }));
 
   return (
-    <section className="px-4 pt-[84px] pb-6 space-y-6">
-      {/* top bar */}
-      <div className="flex flex-col sm:flex-row sm:justify-between sm:items-center gap-4 mb-2">
-        <CityTag city={displayName} flag={flag} className="w-max mt-6" />
-        <SellTicketButton 
-          href={`/${lower}/sell`} className={"py-3.5 ml-auto mr-5"}
-        />
-      </div>
+    <section className="mx-auto max-w-screen-lg px-4 pt-[95px] pb-6 space-y-6">
+  {/* top bar */}
+  <div className="flex flex-col sm:flex-row items-center sm:justify-between gap-4 mb-2">
+    <CityTag city={displayName} flag={flag} />
+    <SellTicketButton href={`/${lower}/sell`} />
+  </div>
 
-      {/* current events */}
-      <h2 className="mx-auto w-max rounded border-2 border-black px-6 py-1 text-2xl font-bold bg-sky-200	">
-        Current Events
-      </h2>
+  {/* header */}
+  <h2 className="mx-auto w-max rounded border-2 border-black px-6 py-1 text-2xl font-bold bg-sky-200">
+    Current Events
+  </h2>
 
-      <EventAccordion citySlug={lower} events={normalizedEvents} />
+  {/* centered, capped grey box */}
+  <div className="bg-gray-100 max-w-screen-md mx-auto p-4 rounded-lg">
+    <EventAccordion citySlug={lower} events={normalizedEvents} />
+  </div>
 
-      {/* footer helper */}
-      <p className="text-center text-sm text-gray-700">
-        Don't see your event? Add one by selling a ticket
-      </p>
-    </section>
+  {/* footer note */}
+  <p className="text-center text-sm text-gray-700">
+    Don’t see your event? Add one by selling a ticket
+  </p>
+</section>
   );
 }

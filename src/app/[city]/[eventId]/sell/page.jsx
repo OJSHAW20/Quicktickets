@@ -40,14 +40,16 @@ export default async function SellPage({ params }) {
 
   if (!event) return <p className="p-6 text-center">Event not found.</p>;
 
-  return (
-    <SellTicketClient
-      citySlug={lower}
-      cityId={cityRow.id}
-      cityName={cityRow.name}
-      events={[event]}
-      sellerId={sellerId}
-      preSelectedEventId={eventId}
-    />
-  );
+    return (
+        <div className="mx-auto w-full max-w-md px-4">
+          <SellTicketClient
+            citySlug={lower}
+            cityId={cityRow.id}
+            cityName={cityRow.name}
+            events={[event]}
+            sellerId={sellerId}
+            preSelectedEventId={eventId}
+          />
+        </div>
+      );
 } 

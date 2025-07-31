@@ -32,9 +32,9 @@ export default async function MyListingsAccordion() {
   }
 
   return (
-    <main className="mx-auto max-w-lg p-4 space-y-4 pt-20">
+    <main className="mx-auto max-w-lg md:max-w-2xl p-4 space-y-4 pt-20">
       <Accordion type="multiple" className="w-full" >
-        {/* ────────────────────────────  My details  */}
+        {/* ─────────────────────────── ─  My details  */}
         <AccordionItem value="details">
           <AccordionTrigger className="text-lg font-semibold">
             🎓 My details

@@ -51,11 +51,14 @@ export default async function EventPage({ params }) {
 
   /* 5. render page */
   return (
-    <section className="px-4 pt-[84px] pb-6 space-y-6">
+    <section className="mx-auto max-w-screen-lg px-4 pt-[84px] pb-6 space-y-6">
       <CityTag city={cRow.name} flag={flag} />
 
-      <EventHero event={event} />
-
+            {/* center & cap the grey box at ~768px */}
+      <div className="mx-auto max-w-screen-md">
+        <EventHero event={event} />
+      </div>
+      
       <div className="flex items-center justify-between gap-4">
         <SellTicketButton href={`/${lower}/${eventId}/sell`} />
         {/* unified DemandChip also contains the "🔔 I'd buy" button */}
