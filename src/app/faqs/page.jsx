@@ -19,7 +19,7 @@ export default function FaqsPage() {
   const [openIndex, setOpenIndex] = useState(0);
 
   return (
-    <main className="mx-auto max-w-3xl p-6 space-y-6 mt-20">
+    <main className="mx-auto max-w-3xl p-6 space-y-3 mt-20">
       {/* Blue FAQs heading */}
       <div className="bg-blue-200 border-2 border-black rounded-lg py-3 px-4">
         <h1 className="text-3xl font-bold text-center">Faqs</h1>
@@ -65,7 +65,7 @@ export default function FaqsPage() {
       </div>
 
       {/* Pagination dots */}
-      <div className="flex justify-center space-x-2 mt-2">
+      <div className="flex justify-center space-x-2 mt-1">
         <span className="w-3 h-3 bg-gray-500 rounded-full" />
         <span className="w-3 h-3 bg-gray-500 rounded-full" />
         <span className="w-3 h-3 bg-gray-500 rounded-full" />

@@ -17,7 +17,7 @@ export default async function Home() {
   
   return (
     /* pad top & bottom so content never hides under fixed header/footer */
-    <section className="mx-auto max-w-screen-md px-4 pt-[120px] pb-20 text-center">
+    <section className="mx-auto max-w-screen-md px-4 pt-[80px] pb-20 text-center">
       {/* main headline */}
       <h1 className="text-5xl sm:text-6xl font-bold leading-tight">
         Welcome to<br />

@@ -52,7 +52,12 @@ export async function createCheckoutSession({ ticketId, eventId, buyerId }) {
     }],
     mode: 'payment',
     success_url: `${process.env.NEXT_PUBLIC_APP_URL}/orders/success?session_id={CHECKOUT_SESSION_ID}`,
-    cancel_url:  `${process.env.NEXT_PUBLIC_APP_URL}/event/${eventId}`
+    cancel_url:  `${process.env.NEXT_PUBLIC_APP_URL}/event/${eventId}`,
+    metadata: { 
+      ticketId,
+      eventId,
+      buyerId
+    }
   });
 
   // 3) Insert a pending order

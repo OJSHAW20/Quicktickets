@@ -67,8 +67,8 @@ export default async function SuccessPage({ searchParams }) {
         })}</p>
         <p><strong>Price Paid:</strong> £{price.toFixed(2)}</p>
       </div>
-      <Link href="/">
-        <a className="text-blue-600 hover:underline">Back to events</a>
+      <Link href="/" className="text-blue-600 hover:underline">
+        Back to events
       </Link>
     </main>
   );

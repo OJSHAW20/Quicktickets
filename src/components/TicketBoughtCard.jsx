@@ -57,7 +57,7 @@ export default function TicketBoughtCard({ ticket, hasDispute }) {
       .eq('id', ticket.seller_id)
       .single()
       .then(({ data, error }) => {
-        if (error) {
+        if (error && (error.message || error.status)) {
           // only log when there's a real Supabase error
           console.error("Profile fetch error:", error);
           return;
