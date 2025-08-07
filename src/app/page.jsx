@@ -19,7 +19,7 @@ export default async function Home() {
     /* pad top & bottom so content never hides under fixed header/footer */
     <section className="mx-auto max-w-screen-md px-4 pt-[80px] pb-20 text-center">
       {/* main headline */}
-      <h1 className="text-5xl sm:text-6xl font-bold leading-tight">
+      <h1 className="pt-8 text-3xl xs:text-5xl sm:text-5xl md:text-6xl font-bold leading-tight break-words">
         Welcome to<br />
         quicktickets.com
       </h1>
@@ -36,10 +36,10 @@ export default async function Home() {
 
       {/* Lower info area */}
       <div className="mt-7">
-        <p className="text-2xl font-medium">Save your night in 3 clicks</p>
+        <p className="text-2xl font-medium">3-Click Payout + 0% Fees</p>
 
         {/* Pills: 2 columns on mobile, 4 columns from md up */}
-        <div className="mt-4 grid grid-cols-2 md:grid-cols-4 gap-4 max-w-md md:max-w-xl mx-auto">
+        <div className="hidden md:grid mt-4 grid-cols-2 md:grid-cols-4 gap-4 max-w-md md:max-w-xl mx-auto">
           {[
             ['🔥 0% buyer fee'],
             ['✅ Improved flexibility'],
