@@ -47,45 +47,54 @@ export async function GET(req) {
 
   for (const order of orders ?? []) {
     const intentId = order.stripe_payment_intent;
-    const amount = Math.round(order.ticket.price * 100);
+    const amount   = Math.round(order.ticket.price * 100);
     const sellerId = order.ticket.seller_id;
-
+  
     try {
       if (!dryRun) {
-        // Capture the payment
-        await stripe.paymentIntents.capture(intentId);
-
-        // Mark order complete
+        // 1) Get the PaymentIntent
+        const pi = await stripe.paymentIntents.retrieve(intentId);
+  
+        // 2) Capture only if needed; if already succeeded, skip capture
+        if (pi.status === 'requires_capture') {
+          await stripe.paymentIntents.capture(intentId);
+        } else if (pi.status !== 'succeeded') {
+          console.warn(`PI ${intentId} is ${pi.status}; skipping this order.`);
+          continue; // don't mark complete or transfer if it's not payable
+        }
+  
+        // 3) Mark order complete
         await supabase
           .from('orders')
           .update({ status: 'complete', released_at: new Date().toISOString() })
           .eq('id', order.id);
-
-        // Get seller’s Stripe account
+  
+        // 4) Look up seller’s connected account
         const { data: profile, error: profErr } = await supabase
           .from('profiles')
           .select('stripe_account_id')
           .eq('id', sellerId)
           .single();
-
+  
         if (profErr || !profile?.stripe_account_id) {
           console.warn(`No stripe_account_id for seller ${sellerId}, skipping transfer.`);
         } else {
-          // Transfer funds to seller
+          // 5) Transfer funds to the seller's connected account
           await stripe.transfers.create({
             amount,
             currency: 'gbp',
             destination: profile.stripe_account_id
-            // removed source_transaction to avoid Stripe error
+            // (no source_transaction; PI != charge id)
           });
         }
       }
-
+  
       processed++;
     } catch (err) {
       console.error(`Failed processing order ${order.id}:`, err);
     }
   }
+  
 
   return NextResponse.json({ success: true, processed, dryRun });
 }
