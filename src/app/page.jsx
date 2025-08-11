@@ -36,7 +36,7 @@ export default async function Home() {
 
       {/* Lower info area */}
       <div className="mt-7">
-        <p className="text-2xl font-medium">3-Click Payout + 0% Fees</p>
+        <p className="text-2xl font-medium">3-Click Process + 0% transaction fees</p>
 
         {/* Pills: 2 columns on mobile, 4 columns from md up */}
         <div className="hidden md:grid mt-4 grid-cols-2 md:grid-cols-4 gap-4 max-w-md md:max-w-xl mx-auto">
