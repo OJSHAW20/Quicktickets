@@ -4,23 +4,34 @@ import { createSupabaseServer } from '@/lib/supabaseClient';
 import { randomUUID } from 'crypto';
 import sharp from 'sharp';
 
-export async function createTicket({ 
-  eventId, 
-  sellerId,         // ← we’ll pass this in 
-  price, 
-  last_entry_time, 
-  buyer_uni_only, 
-  file 
+export async function createTicket({
+  eventId,
+  sellerId,
+  price,
+  last_entry_time,
+  buyer_uni_only,
+  file,
 }) {
   const svc = createSupabaseServer();
 
-  // 0) basic validation: require an image (jpeg/png/webp), max ~10MB
-  if (!file || typeof file !== 'object') {
-    throw new Error('Missing file');
+  // HARD GATE: seller must have a connected Stripe account
+  const { data: prof, error: profErr } = await svc
+    .from('profiles')
+    .select('stripe_account_id')
+    .eq('id', sellerId)
+    .single();
+
+  if (profErr || !prof?.stripe_account_id) {
+    return { ok: false, code: 'STRIPE_ONBOARDING_REQUIRED' };
   }
-  const MAX_BYTES = 10 * 1024 * 1024; // 10MB
+
+  // --- existing validation ---
+  if (!file || typeof file !== 'object') {
+    return { ok: false, code: 'BAD_REQUEST', message: 'Missing file' };
+  }
+  const MAX_BYTES = 10 * 1024 * 1024;
   if (typeof file.size === 'number' && file.size > MAX_BYTES) {
-    throw new Error('File too large (max 10MB)');
+    return { ok: false, code: 'BAD_REQUEST', message: 'File too large (max 10MB)' };
   }
   const allowedExts = ['jpg', 'jpeg', 'png', 'webp'];
   const allowedMimes = ['image/jpeg', 'image/png', 'image/webp'];
@@ -28,45 +39,49 @@ export async function createTicket({
   const ext = (originalName.split('.').pop() || '').toLowerCase();
   const mime = typeof file.type === 'string' ? file.type.toLowerCase() : '';
   if (ext === 'svg' || mime === 'image/svg+xml') {
-    throw new Error('SVG files are not allowed');
+    return { ok: false, code: 'BAD_REQUEST', message: 'SVG files are not allowed' };
   }
   const looksLikeAllowedExt = allowedExts.includes(ext);
   const looksLikeAllowedMime = allowedMimes.includes(mime);
   if (!looksLikeAllowedExt && !looksLikeAllowedMime) {
-    throw new Error('Only image files (jpeg, png, webp) are allowed');
+    return { ok: false, code: 'BAD_REQUEST', message: 'Only image files (jpeg, png, webp) are allowed' };
   }
 
-  // 1) re-encode to WebP, strip metadata, and bound dimensions (e.g., 2000x2000)
-  const inputBuf = Buffer.from(await file.arrayBuffer());
-  const processed = await sharp(inputBuf)
-    .rotate() // respect orientation and normalize
-    .resize({ width: 2000, height: 2000, fit: 'inside', withoutEnlargement: true })
-    .webp({ quality: 85 })
-    .toBuffer();
+  try {
+    // 1) re-encode to WebP
+    const inputBuf = Buffer.from(await file.arrayBuffer());
+    const processed = await sharp(inputBuf)
+      .rotate()
+      .resize({ width: 2000, height: 2000, fit: 'inside', withoutEnlargement: true })
+      .webp({ quality: 85 })
+      .toBuffer();
 
-  // 2) upload processed image (always .webp)
-  const safeExt = 'webp';
-  const key = `tickets/${randomUUID()}.${safeExt}`;
-  const { data: uploadData, error: uploadErr } = await svc
-    .storage
-    .from('ticket-proofs')
-    .upload(key, processed, { contentType: 'image/webp', upsert: false });
-  if (uploadErr) throw new Error(`Upload error: ${uploadErr.message}`);
+    // 2) upload
+    const key = `tickets/${randomUUID()}.webp`;
+    const { data: uploadData, error: uploadErr } = await svc
+      .storage
+      .from('ticket-proofs')
+      .upload(key, processed, { contentType: 'image/webp', upsert: false });
+    if (uploadErr) return { ok: false, code: 'UPLOAD_FAILED', message: uploadErr.message };
 
-  // 2) insert with seller_id supplied
-  const { data, error } = await svc
-    .from('tickets')
-    .insert({
-      event_id:        eventId,
-      seller_id:       sellerId,        // ← comes from the client
-      price,
-      last_entry_time,
-      proof_url:       uploadData.path,
-      buyer_uni_only,
-    })
-    .select('id')
-    .single();
-  if (error) throw new Error(error.message);
+    // 3) insert ticket
+    const { data, error } = await svc
+      .from('tickets')
+      .insert({
+        event_id: eventId,
+        seller_id: sellerId,
+        price,
+        last_entry_time,
+        proof_url: uploadData.path,
+        buyer_uni_only,
+      })
+      .select('id')
+      .single();
+    if (error) return { ok: false, code: 'DB_INSERT_FAILED', message: error.message };
 
-  return data.id;
+    return { ok: true, id: data.id };
+  } catch (e) {
+    console.error('createTicket failed:', e);
+    return { ok: false, code: 'INTERNAL', message: 'Could not create ticket' };
+  }
 }

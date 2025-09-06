@@ -15,9 +15,11 @@ import DisputesSellSidePanel from "@/components/DisputesSellSidePanel";
 import TicketsSellingPanel from "@/components/TicketsSellingPanel";
 import { createServerComponentClient } from "@supabase/auth-helpers-nextjs";
 import MyDetailsPanel from "@/components/ui/MyDetailsPanel";
+import StripeSellerCard from '@/components/StripeSellerCard';
 
 
-export default async function MyListingsAccordion() {
+
+export default async function MyListingsAccordion({ searchParams }) {
   // build a Supabase client bound to this request’s cookies
   const supabase = createServerComponentClient({ cookies });
 
@@ -30,6 +32,7 @@ export default async function MyListingsAccordion() {
   if (!session) {
     redirect("/signin");
   }
+  const justConnected = Boolean(searchParams?.connected);
 
   return (
     <main className="mx-auto max-w-lg md:max-w-2xl p-4 space-y-4 pt-20">
@@ -67,6 +70,7 @@ export default async function MyListingsAccordion() {
             📋 My listings
           </AccordionTrigger>
           <AccordionContent>
+          <StripeSellerCard justConnected={justConnected} />
           <TicketsSellingPanel />
           </AccordionContent>
         </AccordionItem>

@@ -1,15 +1,14 @@
+// src/components/TicketForm.jsx
 'use client';
 
 import { useState } from 'react';
-import { createTicket } from '@/actions/createTicket';  // your server-action
-import { useRouter } from 'next/navigation';
+import { createTicket } from '@/actions/createTicket';
 
 export default function TicketForm({
   eventId,
   sellerId,            // comes from SellTicketClient
   onTicketCreated
 }) {
-  const router = useRouter();
   const [price, setPrice] = useState('');
   const [lastEntry, setLastEntry] = useState('');
   const [buyerScope, setBuyerScope] = useState('any');
@@ -18,27 +17,45 @@ export default function TicketForm({
 
   async function handleSubmit(e) {
     e.preventDefault();
+
     if (!file) {
-      return alert('Please choose an image file as proof');
+      alert('Please choose an image file as proof');
+      return;
     }
+
+    const parsedPrice = Number(price);
+    if (!Number.isFinite(parsedPrice) || parsedPrice <= 0) {
+      alert('Enter a valid price');
+      return;
+    }
+
     setSubmitting(true);
-
     try {
-      const buyer_uni_only = (buyerScope === 'myUni');
+      const buyer_uni_only = buyerScope === 'myUni';
 
-      await createTicket({
+      const res = await createTicket({
         eventId,
-        sellerId,                        // ← use the prop, no lookup
-        price: parseFloat(price),
+        sellerId, // from props
+        price: parsedPrice,
         last_entry_time: lastEntry,
         buyer_uni_only,
-        file
+        file,
       });
 
-      onTicketCreated(eventId);
+      if (!res?.ok) {
+        if (res?.code === 'STRIPE_ONBOARDING_REQUIRED') {
+          // Send the seller to Stripe onboarding
+          window.location.href = '/api/stripe/connect/start';
+          return;
+        }
+        alert(res?.message || 'Failed to list ticket');
+        return;
+      }
+
+      onTicketCreated?.(eventId);
     } catch (err) {
       console.error(err);
-      alert(err.message || 'Failed to list ticket');
+      alert('Failed to list ticket');
     } finally {
       setSubmitting(false);
     }

@@ -4,6 +4,8 @@ import { cookies } from "next/headers";
 import { createServerComponentClient } from "@supabase/auth-helpers-nextjs";
 import TicketSellingCard from "@/components/ui/TicketSellingCard";
 import { format } from "date-fns";
+import ConnectStripeButton from '@/components/ConnectStripeButton';
+
 
 export default async function TicketsSellingPanel() {
   // 1. Build Supabase client bound to this request's cookies
@@ -17,6 +19,15 @@ export default async function TicketsSellingPanel() {
   if (!session) {
     return <p className="text-sm text-red-500">You must be signed in.</p>;
   }
+
+  // Fetch seller's Stripe connect status
+const { data: profile } = await supabase
+.from('profiles')
+.select('stripe_account_id')
+.eq('id', session.user.id)
+.single();
+
+const hasStripe = !!profile?.stripe_account_id;
 
   // 3. Fetch this user's AVAILABLE tickets with event info
   const sevenDaysAgo = new Date(Date.now() - 7 * 24 * 60 * 60 * 1000).toISOString();
@@ -63,6 +74,16 @@ export default async function TicketsSellingPanel() {
   
     return (
       <div className="space-y-6">
+        {!hasStripe && (
+    <div className="rounded-md border p-4 space-y-2">
+      <h3 className="font-semibold">Connect Stripe to list tickets</h3>
+      <p className="text-sm text-muted-foreground">
+        You need to connect your Stripe account to receive payouts.
+      </p>
+      <ConnectStripeButton label="Connect Stripe" />
+    </div>
+  )}
+
         {/* ——— Active listings ——— */}
         <section>
           <h3 className="text-lg font-semibold mb-2">Active Listings</h3>

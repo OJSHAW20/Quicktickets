@@ -2,7 +2,7 @@
 
 import { useState, useMemo } from 'react';
 import { useRouter } from 'next/navigation';
-import TicketForm from '@/components/TicketForm';
+import TicketForm from '@/components/TicketForm'; // ✅ no curly braces
 import NewEventForm from '@/components/NewEventForm';
 import CityTag from '@/components/CityTag';
 import { useSession } from '@supabase/auth-helpers-react';
