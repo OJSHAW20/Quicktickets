@@ -28,7 +28,7 @@ export default function SellTicketClient({
   const handleTicketCreated = (eventId) =>
     router.push(`/${citySlug}/${eventId}`);
 
-  const flagMap = { edinburgh: '🏴', london: '🇬🇧', bristol: '🏴‍☠️' };
+  const flagMap = { edinburgh: '', london: '🇬🇧', bristol: '🏴‍☠️' };
   
   // If preSelectedEventId is provided, find the event by ID
   // Otherwise, use the first event in the array (for event-specific sell pages)

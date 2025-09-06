@@ -7,6 +7,7 @@ import React from 'react';
 export default function SellTicketButton({ href = "/sell", className = "" }) {
   const session = useSession();
   const router = useRouter();
+  const safeHref = typeof href === 'string' && href.startsWith('/') ? href : '/sell';
 
   function handleClick(e) {
     e.preventDefault(); // prevent default <a> navigation
@@ -17,12 +18,12 @@ export default function SellTicketButton({ href = "/sell", className = "" }) {
       return;
     }
 
-    router.push(href);
+    router.push(safeHref);
   }
 
   return (
     <a
-      href={href}
+      href={safeHref}
       onClick={handleClick}
       className={
         `inline-flex items-center space-x-2 

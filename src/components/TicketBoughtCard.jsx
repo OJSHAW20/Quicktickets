@@ -13,6 +13,7 @@ import {
  DialogFooter,
 } from '@/components/ui/dialog';
 import { Button } from '@/components/ui/button';
+import { sanitizeUrl } from '@/lib/utils';
 import { createDispute } from '@/actions/createDispute';
 
 
@@ -57,9 +58,11 @@ export default function TicketBoughtCard({ ticket, hasDispute }) {
       .eq('id', ticket.seller_id)
       .single()
       .then(({ data, error }) => {
-        if (error && (error.message || error.status)) {
-          // only log when there's a real Supabase error
-          console.error("Profile fetch error:", error);
+        if (error) {
+          // only log when there's a real Supabase error with meaningful content
+          if (error.message || error.status || Object.keys(error).length > 0) {
+            console.error("Profile fetch error:", error);
+          }
           return;
         }
         if (data && typeof data.uni_verified === 'boolean') {
@@ -114,7 +117,7 @@ export default function TicketBoughtCard({ ticket, hasDispute }) {
   {ticket.proof_url && (
     <div>
       <a
-        href={ticket.proof_url}
+        href={sanitizeUrl(ticket.proof_url)}
         target="_blank"
         rel="noopener noreferrer"
         download

@@ -9,6 +9,17 @@ const compat = new FlatCompat({
   baseDirectory: __dirname,
 });
 
-const eslintConfig = [...compat.extends("next/core-web-vitals")];
+const eslintConfig = [
+  ...compat.extends("next/core-web-vitals"),
+  {
+    rules: {
+      // Enforce rel="noopener noreferrer" with target="_blank"
+      'react/jsx-no-target-blank': [
+        'error',
+        { allowReferrer: false, enforceDynamicLinks: 'always' }
+      ],
+    },
+  },
+];
 
 export default eslintConfig;

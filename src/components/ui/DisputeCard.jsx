@@ -5,6 +5,7 @@ import { useRouter } from 'next/navigation';
 import { createSupabaseBrowser } from '@/lib/supabaseBrowser';
 import { Button } from '@/components/ui/button';
 import { respondToDispute } from '@/actions/respondToDispute';
+import { sanitizeUrl } from '@/lib/utils';
 
 export default function DisputeCard({ dispute }) {
   const router = useRouter();
@@ -43,7 +44,7 @@ export default function DisputeCard({ dispute }) {
         <div>
           <h4 className="font-medium">Proof Image</h4>
           <img
-            src={dispute.order.ticket.proof_url}
+            src={sanitizeUrl(dispute.order.ticket.proof_url)}
             alt="Ticket proof"
             className="mt-1 max-h-48 object-contain border"
           />
