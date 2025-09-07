@@ -5,87 +5,65 @@ import { createRouteHandlerClient } from '@supabase/auth-helpers-nextjs';
 import { createSupabaseServer } from '@/lib/supabaseClient';
 import Stripe from 'stripe';
 
-// For MVP we do a GET → redirect straight to Stripe (no client code needed)
 export async function GET() {
-  // 0) basic env checks
-  const secret = process.env.STRIPE_SECRET_KEY;
-  const returnUrl  = process.env.STRIPE_CONNECT_RETURN_URL;
-  const refreshUrl = process.env.STRIPE_CONNECT_REFRESH_URL;
-  if (!secret || !returnUrl || !refreshUrl) {
+  const secret    = process.env.STRIPE_SECRET_KEY;
+  const returnUrl = process.env.STRIPE_CONNECT_RETURN_URL;   // e.g. /my-listings?connected=1
+  const refreshUrl= process.env.STRIPE_CONNECT_REFRESH_URL;  // e.g. /my-listings
+  const appUrl    = process.env.NEXT_PUBLIC_APP_URL;
+  if (!secret || !returnUrl || !refreshUrl || !appUrl) {
     return NextResponse.json(
-      { error: 'Stripe env vars missing: STRIPE_SECRET_KEY, STRIPE_CONNECT_RETURN_URL, STRIPE_CONNECT_REFRESH_URL' },
+      { error: 'Missing STRIPE_* or NEXT_PUBLIC_APP_URL envs' },
       { status: 500 }
     );
   }
 
   const stripe = new Stripe(secret, { apiVersion: '2024-06-20' });
 
-  // 1) get the logged-in user
+  // who is the seller
   const anon = createRouteHandlerClient({ cookies });
-  const {
-    data: { user },
-    error: authErr,
-  } = await anon.auth.getUser();
-
-  if (authErr || !user) {
-    return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
-  }
+  const { data: { user } } = await anon.auth.getUser();
+  if (!user) return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
 
   const svc = createSupabaseServer();
 
-  // 2) load or create the seller's Connect account id in profiles
+  // read/create connected account
   let acctId = null;
-
-  // read current value
-  const { data: profile, error: pErr } = await svc
+  const { data: profile } = await svc
     .from('profiles')
     .select('stripe_account_id')
     .eq('id', user.id)
     .single();
+  acctId = profile?.stripe_account_id ?? null;
 
-  if (pErr && pErr.code !== 'PGRST116') {
-    // PGRST116 = no rows found — we handle that below
-    console.error('profiles read error', pErr);
-  } else {
-    acctId = profile?.stripe_account_id ?? null;
-  }
-
-  // create one if missing
   if (!acctId) {
-    // MVP: request transfers capability (we transfer after event)
-    // Country left unset so Stripe collects it during onboarding.
     const account = await stripe.accounts.create({
       type: 'express',
+      business_type: 'individual',                // ← force Individual
       capabilities: { transfers: { requested: true } },
-      business_type: 'individual',
-      metadata: { app: 'p2p-tickets', user_id: user.id },
+      business_profile: {
+        url: appUrl,                              // prefill to avoid “what’s your website?”
+        product_description: 'Peer-to-peer ticket resales',
+      },
+      metadata: { app: 'quicktickets', user_id: user.id },
     });
     acctId = account.id;
 
-    // try update first, then insert if no row
-    const { error: updErr, count } = await svc
+    // upsert stripe_account_id
+    const { error: updErr } = await svc
       .from('profiles')
       .update({ stripe_account_id: acctId })
       .eq('id', user.id);
-
     if (updErr) {
-      // if the profile row didn't exist, create a minimal one
-      const { error: insErr } = await svc
-        .from('profiles')
-        .insert({ id: user.id, stripe_account_id: acctId });
-      if (insErr) {
-        console.error('profiles upsert error', insErr);
-        return NextResponse.json({ error: 'Failed to save stripe_account_id' }, { status: 500 });
-      }
+      await svc.from('profiles').insert({ id: user.id, stripe_account_id: acctId });
     }
   }
 
-  // 3) create an account onboarding link and redirect there
+  // Express onboarding link (URL must look like https://connect.stripe.com/setup/...)
   const link = await stripe.accountLinks.create({
     account: acctId,
-    refresh_url: refreshUrl, // e.g. https://your.app/settings
-    return_url: returnUrl,   // e.g. https://your.app/settings?connected=1
     type: 'account_onboarding',
+    return_url: returnUrl,
+    refresh_url: refreshUrl,
   });
 
   return NextResponse.redirect(link.url, { status: 302 });

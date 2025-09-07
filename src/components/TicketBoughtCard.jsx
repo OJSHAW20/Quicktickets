@@ -54,9 +54,9 @@ export default function TicketBoughtCard({ ticket, hasDispute }) {
       .eq('id', ticket.seller_id)
       .single()
       .then(({ data, error }) => {
-        if (error && (error.message || error.status || Object.keys(error).length > 0)) {
-          console.error('Profile fetch error:', error);
-        }
+          if (error?.message || error?.status) {
+              console.error('Profile fetch error:', error);
+            }
         setSellerVerified(Boolean(data?.uni_verified));
       });
   }, [ticket.seller_id, browserSupabase]);
